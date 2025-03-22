@@ -1,25 +1,10 @@
-import numpy as np
-import re
 import pathlib
-import json
-from functools import reduce, cmp_to_key, cache
-from string import ascii_lowercase
-from math import prod, gcd, sqrt
-from itertools import permutations, product
-from llist import dllist as llist
-from copy import deepcopy
-from hashlib import md5, sha256
-from os import environ
-
+from functools import cache
+from itertools import permutations
 
 def read():
-    with open(DIR / "input") as f:
-        return (f.read() if teststr == "" else teststr).splitlines()
-
-
-KEYA = "789\n456\n123\n.0A"
-KEYB = ".^A\n<v>"
-
+    with open(pathlib.Path(__file__).parent.absolute() / "input") as f:
+        return f.read().splitlines()
 
 def getidx(keypad, btn):
     x = 0
@@ -33,10 +18,10 @@ def getidx(keypad, btn):
         else:
             y += 1
 
-
+KEYA = "789\n456\n123\n.0A"
+KEYB = ".^A\n<v>"
 IDX_KEYA = {c: getidx(KEYA, c) for c in KEYA if c != "\n"}
 IDX_KEYB = {c: getidx(KEYB, c) for c in KEYB if c != "\n"}
-
 
 def all_movement(btn, btn_, keypad):
     if btn == btn_:
@@ -86,10 +71,8 @@ def all_movement(btn, btn_, keypad):
 
     return results
 
-
 def two_stride(s):
     return [s[i - 1 : i + 1] for i in range(1, len(s))]
-
 
 @cache
 def minimum_amount_for_levels(line, levels, use_keypad_A=False):
@@ -98,45 +81,20 @@ def minimum_amount_for_levels(line, levels, use_keypad_A=False):
 
     l = 0
     for s in two_stride("A" + line):
-        l += min(
-            [
-                minimum_amount_for_levels(m + "A", levels - 1)
-                for m in all_movement(s[0], s[1], "A" if use_keypad_A else "B")
-            ]
-        )
+        l += min([
+            minimum_amount_for_levels(m + "A", levels - 1)
+            for m in all_movement(s[0], s[1], "A" if use_keypad_A else "B")
+        ])
 
     return l
 
 
 def run(levels):
-
     s = 0
     for line in t:
-        s += minimum_amount_for_levels(line, levels + 1, True) * int(
-            line.replace("A", "")
-        )
+        s += minimum_amount_for_levels(line, levels + 1, True) * int(line.replace("A", ""))
     print(s)
 
-
-def easy():
-    run(2)
-
-
-def hard():
-    run(25)
-
-
-teststr = """029A
-980A
-179A
-456A
-379A"""
-if environ.get("AOC_SOLVE", "") == "1":
-    teststr = ""
-DIR = pathlib.Path(__file__).parent.absolute()
-lmap = lambda *a: list(map(*a))
-inf = float("inf")
 t = read()
-if __name__ == "__main__":
-    easy()
-    hard()
+run(2)
+run(25)
