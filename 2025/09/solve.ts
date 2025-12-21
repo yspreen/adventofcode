@@ -81,10 +81,8 @@ for (let i = 0; i < lines.length; i++) {
             }
         }
         if (found) {
-            console.log("found", [ax, ay], [bx, by], (Math.abs(ax - bx) + 1) * (Math.abs(ay - by) + 1))
             continue
         }
-        console.log("valid", [ax, ay], [bx, by], (Math.abs(ax - bx) + 1) * (Math.abs(ay - by) + 1))
         
         
         max = Math.max(max, (Math.abs(ax - bx) + 1) * (Math.abs(ay - by) + 1))
