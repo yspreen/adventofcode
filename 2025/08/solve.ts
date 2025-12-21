@@ -74,5 +74,23 @@ sizes.sort((a, b) => +a - +b)
 
 console.log(sizes.pop()! * sizes.pop()! * sizes.pop()!)
 
+let lastX = 0
+while (Object.keys(networkToIds).length > 1) {
+    const dist = allDistancesSorted.pop()!
+    for (const [i, j] of revDistances[dist]) {
+        if (idToNetwork[i] === idToNetwork[j]) {
+            continue;
+        }
+        lastX = lines[i][0] * lines[j][0]
+        const toBeDeleted = idToNetwork[j]
+        const newId = idToNetwork[i]
+        for (const member of networkToIds[toBeDeleted]) {
+            networkToIds[newId].add(member)
+            idToNetwork[member] = newId
+        }
+        delete networkToIds[toBeDeleted]
+    }
+}
+console.log(lastX)
 
 export { }
