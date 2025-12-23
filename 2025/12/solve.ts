@@ -4,88 +4,6 @@ const pieceOrientations: Piece[][] = [];
 
 type Piece = number[][];
 
-function getEmptyRegions(grid: number[][]): number[][][] {
-  const h = grid.length;
-  const w = grid[0].length;
-  const seen = Array.from({ length: h }, () =>
-    Array(w)
-      .fill(0)
-      .map(() => false),
-  );
-  const regions: number[][][] = [];
-
-  const dirs = [
-    [1, 0],
-    [-1, 0],
-    [0, 1],
-    [0, -1],
-  ];
-
-  for (let x = 0; x < h; x++) {
-    for (let y = 0; y < w; y++) {
-      if (grid[x][y] !== 0 || seen[x][y]) continue;
-
-      const region: number[][] = [];
-      const stack = [[x, y]];
-      seen[x][y] = true;
-
-      while (stack.length) {
-        const [cx, cy] = stack.pop()!;
-        region.push([cx, cy]);
-
-        for (const [dx, dy] of dirs) {
-          const nx = cx + dx,
-            ny = cy + dy;
-          if (
-            nx >= 0 &&
-            nx < h &&
-            ny >= 0 &&
-            ny < w &&
-            !seen[nx][ny] &&
-            grid[nx][ny] === 0
-          ) {
-            seen[nx][ny] = true;
-            stack.push([nx, ny]);
-          }
-        }
-      }
-
-      regions.push(region);
-    }
-  }
-
-  return regions;
-}
-
-function regionIsFillable(
-  grid: number[][],
-  region: number[][],
-  counts: number[],
-): boolean {
-  for (let i = 0; i < counts.length; i++) {
-    if (counts[i] === 0) continue;
-
-    for (const piece of pieceOrientations[i]) {
-      for (const [x, y] of region) {
-        if (fits(grid, piece, x, y)) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-}
-
-function allRegionsFeasible(grid: number[][], counts: number[]): boolean {
-  const regions = getEmptyRegions(grid);
-  for (const region of regions) {
-    if (!regionIsFillable(grid, region, counts)) {
-      return false;
-    }
-  }
-  return true;
-}
-
 function rotate(piece: Piece) {
   const zeros = piece.map((row) => row.map((_) => 0));
   piece.forEach((row, i) => {
@@ -111,8 +29,6 @@ function contains(pieces: Piece[], piece: Piece) {
 }
 
 function fits(grid: number[][], piece: Piece, x: number, y: number) {
-  if (x >= grid.length - 2) return false;
-  if (y >= grid[0].length - 2) return false;
   for (let i = 0; i < 3; i++)
     for (let j = 0; j < 3; j++)
       if (piece[i][j] && grid[x + i][y + j]) return false;
@@ -168,17 +84,11 @@ function piecesFit(
     for (const piece of pieceOrientations[i]) {
       if (!fits(grid, piece, x, y)) continue;
       place(grid, piece, x, y);
-      if (
-        allRegionsFeasible(grid, counts) &&
-        piecesFit(grid, counts, nextX, nextY)
-      )
-        return true;
+      if (piecesFit(grid, counts, nextX, nextY)) return true;
       unPlace(grid, piece, x, y);
     }
     counts[i] += 1;
   }
-
-  if (!allRegionsFeasible(grid, counts)) return false;
 
   return piecesFit(
     grid,
