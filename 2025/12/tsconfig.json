@@ -6,9 +6,5 @@
     "sourceMap": true,
     "skipLibCheck": true
   },
-
-
-
-    "include": ["solve.ts"]
-
+  "include": ["solve.ts"]
 }

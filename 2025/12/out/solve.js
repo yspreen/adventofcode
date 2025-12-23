@@ -37,132 +37,109 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var promises_1 = require("fs/promises");
-function hasNan(grid) {
-    for (var _i = 0, grid_1 = grid; _i < grid_1.length; _i++) {
-        var row = grid_1[_i];
-        for (var _a = 0, row_1 = row; _a < row_1.length; _a++) {
-            var el = row_1[_a];
-            if (Number.isNaN(el))
-                return true;
-        }
+var pieceOrientations = [];
+function rotate(piece) {
+    var zeros = piece.map(function (row) { return row.map(function (_) { return 0; }); });
+    piece.forEach(function (row, i) {
+        row.forEach(function (elem, j) {
+            zeros[j][piece.length - i - 1] = elem;
+        });
+    });
+    return zeros;
+}
+function flip(piece) {
+    var zeros = piece[0].map(function () { return piece.map(function (_) { return 0; }); });
+    piece.forEach(function (row, i) {
+        row.forEach(function (elem, j) {
+            zeros[j][i] = elem;
+        });
+    });
+    return rotate(zeros);
+}
+function contains(pieces, piece) {
+    var hashes = pieces.map(function (p) { return p.join("."); });
+    return hashes.includes(piece.join("."));
+}
+function fits(grid, piece, x, y) {
+    for (var i = 0; i < 3; i++)
+        for (var j = 0; j < 3; j++)
+            if (piece[i][j] && grid[x + i][y + j])
+                return false;
+    return true;
+}
+function allZero(numbers) {
+    for (var _i = 0, numbers_1 = numbers; _i < numbers_1.length; _i++) {
+        var number = numbers_1[_i];
+        if (number !== 0)
+            return false;
     }
-    return false;
+    return true;
+}
+function place(grid, piece, x, y) {
+    for (var i = 0; i < 3; i++)
+        for (var j = 0; j < 3; j++)
+            if (piece[i][j])
+                grid[x + i][y + j] += 1;
+}
+function unPlace(grid, piece, x, y) {
+    for (var i = 0; i < 3; i++)
+        for (var j = 0; j < 3; j++)
+            if (piece[i][j])
+                grid[x + i][y + j] -= 1;
+}
+// function piecesFit(grid: number[][], counts: number[], x: number, y: number) {
+//   console.log(grid.join("\n"));
+//   console.log(counts.join(","));
+//   console.log(x, y);
+//   const result = piecesFit_(grid, counts, x, y);
+//   console.log(result);
+//   console.log();
+//   return result;
+// }
+function piecesFit(grid, counts, x, y, emptyChoices) {
+    if (emptyChoices === void 0) { emptyChoices = 0; }
+    if (emptyChoices === 3)
+        return false;
+    if (x === grid.length - 2)
+        return false;
+    if (allZero(counts))
+        return true;
+    var nextX = x;
+    var nextY = y + 1;
+    if (nextY === grid[0].length - 2) {
+        nextX += 1;
+        nextY = 0;
+    }
+    for (var i = 0; i < counts.length; i++) {
+        var count = counts[i];
+        if (count == 0)
+            continue;
+        counts[i] -= 1;
+        for (var _i = 0, _a = pieceOrientations[i]; _i < _a.length; _i++) {
+            var piece = _a[_i];
+            if (!fits(grid, piece, x, y))
+                continue;
+            place(grid, piece, x, y);
+            if (piecesFit(grid, counts, nextX, nextY))
+                return true;
+            unPlace(grid, piece, x, y);
+        }
+        counts[i] += 1;
+    }
+    return piecesFit(grid, counts, nextX, nextY, nextY === 0 ? 0 : emptyChoices + 1);
 }
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        function rotate(piece) {
-            var zeros = piece.map(function (row) { return row.map(function (_) { return 0; }); });
-            piece.forEach(function (row, i) {
-                row.forEach(function (elem, j) {
-                    zeros[j][piece.length - i - 1] = elem;
-                });
-            });
-            return zeros;
-        }
-        function flip(piece) {
-            var zeros = piece[0].map(function () { return piece.map(function (_) { return 0; }); });
-            piece.forEach(function (row, i) {
-                row.forEach(function (elem, j) {
-                    zeros[j][i] = elem;
-                });
-            });
-            return rotate(zeros);
-        }
-        function contains(pieces, piece) {
-            var hashes = pieces.map(function (p) { return p.join("."); });
-            return hashes.includes(piece.join("."));
-        }
-        function fits(grid, piece, x, y) {
-            for (var i_1 = 0; i_1 < 3; i_1++)
-                for (var j = 0; j < 3; j++)
-                    if (piece[i_1][j] && grid[x + i_1][y + j])
-                        return false;
-            return true;
-        }
-        function allZero(numbers) {
-            for (var _i = 0, numbers_1 = numbers; _i < numbers_1.length; _i++) {
-                var number = numbers_1[_i];
-                if (number !== 0)
-                    return false;
-            }
-            return true;
-        }
-        function place(grid, piece, x, y) {
-            for (var i_2 = 0; i_2 < 3; i_2++)
-                for (var j = 0; j < 3; j++)
-                    if (piece[i_2][j])
-                        grid[x + i_2][y + j] += 1;
-        }
-        function unPlace(grid, piece, x, y) {
-            for (var i_3 = 0; i_3 < 3; i_3++)
-                for (var j = 0; j < 3; j++)
-                    if (piece[i_3][j])
-                        grid[x + i_3][y + j] -= 1;
-        }
-        // function piecesFit(grid: number[][], counts: number[], x: number, y: number) {
-        //   console.log(grid.join("\n"));
-        //   console.log(counts.join(","));
-        //   console.log(x, y);
-        //   const result = piecesFit_(grid, counts, x, y);
-        //   console.log(result);
-        //   console.log();
-        //   return result;
-        // }
-        function piecesFit(grid, counts, x, y, emptyChoices) {
-            if (emptyChoices === void 0) { emptyChoices = 0; }
-            if (y === 3) {
-                debugger;
-                console.log(x, y);
-            }
-            if (emptyChoices === 3)
-                return false;
-            if (x === grid.length - 3)
-                return false;
-            if (allZero(counts))
-                return true;
-            var nextX = x;
-            var nextY = y;
-            if (y === grid[0].length - 3) {
-                nextX += 1;
-                nextY = 0;
-            }
-            else
-                nextY += 1;
-            for (var i_4 = 0; i_4 < counts.length; i_4++) {
-                var count = counts[i_4];
-                if (count == 0)
-                    continue;
-                counts[i_4] -= 1;
-                for (var _i = 0, _a = pieceOrientations[i_4]; _i < _a.length; _i++) {
-                    var piece = _a[_i];
-                    if (!fits(grid, piece, x, y))
-                        continue;
-                    place(grid, piece, x, y);
-                    if (hasNan(grid)) {
-                        debugger;
-                    }
-                    if (piecesFit(grid, counts, nextX, nextY))
-                        return true;
-                    unPlace(grid, piece, x, y);
-                    if (hasNan(grid)) {
-                        debugger;
-                    }
-                }
-                counts[i_4] += 1;
-            }
-            return piecesFit(grid, counts, nextX, nextY, nextY === 0 ? 0 : emptyChoices + 1);
-        }
-        var input, chunks, grids, pieceOrientations, i, _i, chunks_1, piece, onePiece, _a, _b, _, _loop_1, _c, _d, gridString;
+        var input, chunks, grids, i, _i, chunks_1, piece, onePiece, _a, _b, _, _loop_1, _c, _d, gridString;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0: return [4 /*yield*/, (0, promises_1.readFile)("input", "utf-8")];
                 case 1:
                     input = _e.sent();
                     if (1)
-                        input = "0:\n###\n##.\n##.\n\n1:\n###\n##.\n.##\n\n2:\n.##\n###\n##.\n\n3:\n##.\n###\n##.\n\n4:\n###\n#..\n###\n\n5:\n###\n.#.\n###\n\n4x4: 0 0 0 0 3 0";
+                        input = "0:\n###\n##.\n##.\n\n1:\n###\n##.\n.##\n\n2:\n.##\n###\n##.\n\n3:\n##.\n###\n##.\n\n4:\n###\n#..\n###\n\n5:\n###\n.#.\n###\n\n3x3: 0 0 0 0 1 0\n4x4: 0 0 0 0 2 0\n4x4: 0 0 0 0 3 0\n12x5: 1 0 1 0 2 2\n12x5: 1 0 1 0 3 2";
                     chunks = input.trim().split("\n\n");
                     grids = chunks.pop();
-                    pieceOrientations = [];
                     i = 0;
                     for (_i = 0, chunks_1 = chunks; _i < chunks_1.length; _i++) {
                         piece = chunks_1[_i];
@@ -206,7 +183,6 @@ function main() {
                         console.log(piecesFit(grid, counts, 0, 0));
                         console.log(grid.join("\n"));
                     };
-                    // const a = 0;
                     for (_c = 0, _d = grids.trim().split("\n"); _c < _d.length; _c++) {
                         gridString = _d[_c];
                         _loop_1(gridString);
